@@ -1,16 +1,43 @@
-# React + Vite
+# Movie Search
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+App de busca de filmes consumindo a [TMDB API](https://www.themoviedb.org/documentation/api), feito com React + Vite.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Lista os filmes populares ao abrir
+- Busca por título
+- Paginação com "Carregar mais"
+- Modal com detalhes do filme (sinopse, nota, ano)
 
-## React Compiler
+## Rodando localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Instale as dependências:
 
-## Expanding the ESLint configuration
+   ```bash
+   npm install
+   ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. Copie `.env.example` para `.env` e preencha com sua chave da TMDB API (crie uma gratuitamente em [themoviedb.org](https://www.themoviedb.org/settings/api)):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Rode o servidor de desenvolvimento:
+
+   ```bash
+   npm run dev
+   ```
+
+## Scripts
+
+- `npm run dev` — inicia o servidor de desenvolvimento
+- `npm run build` — gera a build de produção
+- `npm run preview` — serve a build de produção localmente
+- `npm run lint` — roda o ESLint
+
+## Stack
+
+- React + Vite
+- CSS puro (sem Tailwind, sem bibliotecas de UI)
+- Fetch API nativo
