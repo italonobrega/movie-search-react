@@ -37,6 +37,7 @@ header {
 }
 
 .cartao-filme {
+  position: relative;
   background-color: #222;
   border-radius: 8px;
   overflow: hidden;
@@ -70,6 +71,52 @@ header {
 .info-filme p {
   color: #f5c518; /* Amarelo clássico de estrelas */
   font-weight: bold;
+}
+
+/* --- Botão de favorito (coração) --- */
+.botao-favorito {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.botao-favorito:hover {
+  transform: scale(1.15);
+}
+
+.botao-favorito--ativo {
+  background-color: rgba(229, 9, 20, 0.85); /* Vermelho Netflix */
+}
+
+.botao-favorito--modal {
+  left: 10px;
+  right: auto;
+}
+
+/* --- Botão "Favoritos" no header --- */
+.botao-favoritos {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  background-color: transparent;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+
+.botao-favoritos:hover {
+  border-color: #e50914;
 }
 
 /* --- Estilos da Barra de Busca --- */

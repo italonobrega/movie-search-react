@@ -6,6 +6,17 @@ import MovieModal from './components/MovieModal';
 import Spinner from './components/Spinner';
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const CHAVE_FAVORITOS = 'favoritos';
+
+// Lê os favoritos salvos no localStorage (roda só uma vez, no valor inicial do state)
+const lerFavoritosSalvos = () => {
+  try {
+    const salvos = localStorage.getItem(CHAVE_FAVORITOS);
+    return salvos ? JSON.parse(salvos) : [];
+  } catch {
+    return [];
+  }
+};
 
 function App() {
   const [filmes, setFilmes] = useState([]);
@@ -22,8 +33,26 @@ function App() {
 
   const [filmeSelecionado, setFilmeSelecionado] = useState(null);
 
+  const [favoritos, setFavoritos] = useState(lerFavoritosSalvos);
+  const [mostrarFavoritos, setMostrarFavoritos] = useState(false);
+
   const primeiraRenderizacao = useRef(true); // evita que o efeito de debounce dispare uma busca ao montar
   const timerDebounceRef = useRef(null);
+
+  // Mantém o localStorage sincronizado sempre que a lista de favoritos muda
+  useEffect(() => {
+    localStorage.setItem(CHAVE_FAVORITOS, JSON.stringify(favoritos));
+  }, [favoritos]);
+
+  const ehFavorito = (id) => favoritos.some((filme) => filme.id === id);
+
+  const alternarFavorito = (filme) => {
+    setFavoritos((atuais) =>
+      ehFavorito(filme.id)
+        ? atuais.filter((favorito) => favorito.id !== filme.id)
+        : [...atuais, filme]
+    );
+  };
 
   // Monta a URL certa: busca por texto ou lista de populares
   const montarUrl = (termo, paginaAlvo) => {
@@ -106,48 +135,86 @@ function App() {
       <header>
         <h1>🎬 Movie Search</h1>
         <SearchBar valor={busca} aoMudar={setBusca} aoPesquisar={pesquisarFilmes} />
+        <button
+          className="botao-favoritos"
+          onClick={() => setMostrarFavoritos((atual) => !atual)}
+        >
+          {mostrarFavoritos ? '← Voltar' : `❤ Favoritos (${favoritos.length})`}
+        </button>
       </header>
 
       <main>
-        <h2 className="titulo-secao">
-          {termoBuscado ? `Resultados para: ${termoBuscado}` : 'Filmes Populares'}
-        </h2>
-
-        {erro && filmes.length === 0 && <p className="mensagem-erro">{erro}</p>}
-
-        {carregando && <Spinner />}
-
-        {!carregando && !erro && filmes.length === 0 && (
-          <p className="mensagem-vazia">
-            Nenhum filme encontrado para "{termoBuscado}". Tente outro termo.
-          </p>
-        )}
-
-        {!carregando && filmes.length > 0 && (
+        {mostrarFavoritos ? (
           <>
-            <MovieGrid filmes={filmes} aoSelecionarFilme={setFilmeSelecionado} />
+            <h2 className="titulo-secao">Meus Favoritos</h2>
 
-            {erro && (
-              <p className="mensagem-erro mensagem-erro--paginacao">{erro}</p>
+            {favoritos.length === 0 ? (
+              <p className="mensagem-vazia">
+                Você ainda não favoritou nenhum filme. Clique no ❤ de um filme pra
+                salvá-lo aqui.
+              </p>
+            ) : (
+              <MovieGrid
+                filmes={favoritos}
+                aoSelecionarFilme={setFilmeSelecionado}
+                ehFavorito={ehFavorito}
+                aoAlternarFavorito={alternarFavorito}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            <h2 className="titulo-secao">
+              {termoBuscado ? `Resultados para: ${termoBuscado}` : 'Filmes Populares'}
+            </h2>
+
+            {erro && filmes.length === 0 && <p className="mensagem-erro">{erro}</p>}
+
+            {carregando && <Spinner />}
+
+            {!carregando && !erro && filmes.length === 0 && (
+              <p className="mensagem-vazia">
+                Nenhum filme encontrado para "{termoBuscado}". Tente outro termo.
+              </p>
             )}
 
-            {temMaisPaginas && (
-              <div className="area-carregar-mais">
-                <button
-                  className="botao-carregar-mais"
-                  onClick={carregarMais}
-                  disabled={carregandoMais}
-                >
-                  {carregandoMais ? 'Carregando...' : 'Carregar mais'}
-                </button>
-              </div>
+            {!carregando && filmes.length > 0 && (
+              <>
+                <MovieGrid
+                  filmes={filmes}
+                  aoSelecionarFilme={setFilmeSelecionado}
+                  ehFavorito={ehFavorito}
+                  aoAlternarFavorito={alternarFavorito}
+                />
+
+                {erro && (
+                  <p className="mensagem-erro mensagem-erro--paginacao">{erro}</p>
+                )}
+
+                {temMaisPaginas && (
+                  <div className="area-carregar-mais">
+                    <button
+                      className="botao-carregar-mais"
+                      onClick={carregarMais}
+                      disabled={carregandoMais}
+                    >
+                      {carregandoMais ? 'Carregando...' : 'Carregar mais'}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
       </main>
 
       {filmeSelecionado && (
-        <MovieModal filme={filmeSelecionado} aoFechar={() => setFilmeSelecionado(null)} />
+        <MovieModal
+          filme={filmeSelecionado}
+          aoFechar={() => setFilmeSelecionado(null)}
+          favorito={ehFavorito(filmeSelecionado.id)}
+          aoAlternarFavorito={() => alternarFavorito(filmeSelecionado)}
+        />
       )}
     </div>
   );

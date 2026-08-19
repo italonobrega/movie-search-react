@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 // Modal de detalhes. Usa os dados que já vieram na busca (sem precisar de outra chamada à API).
-function MovieModal({ filme, aoFechar }) {
+function MovieModal({ filme, aoFechar, favorito, aoAlternarFavorito }) {
   const botaoFecharRef = useRef(null);
 
   // Fecha com a tecla Esc e já leva o foco pro botão de fechar ao abrir,
@@ -37,6 +37,15 @@ function MovieModal({ filme, aoFechar }) {
           aria-label="Fechar"
         >
           ✕
+        </button>
+
+        <button
+          className={`botao-favorito${favorito ? ' botao-favorito--ativo' : ''} botao-favorito--modal`}
+          onClick={aoAlternarFavorito}
+          aria-label={favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          aria-pressed={favorito}
+        >
+          {favorito ? '❤' : '🤍'}
         </button>
 
         <img
