@@ -1,5 +1,22 @@
+import { useEffect, useRef } from 'react';
+
 // Modal de detalhes. Usa os dados que já vieram na busca (sem precisar de outra chamada à API).
 function MovieModal({ filme, aoFechar }) {
+  const botaoFecharRef = useRef(null);
+
+  // Fecha com a tecla Esc e já leva o foco pro botão de fechar ao abrir,
+  // do jeito que um <dialog> nativo se comportaria.
+  useEffect(() => {
+    botaoFecharRef.current?.focus();
+
+    const aoPressionarTecla = (e) => {
+      if (e.key === 'Escape') aoFechar();
+    };
+
+    document.addEventListener('keydown', aoPressionarTecla);
+    return () => document.removeEventListener('keydown', aoPressionarTecla);
+  }, [aoFechar]);
+
   // Clicar fora do card (no fundo escurecido) também fecha o modal
   const aoClicarFundo = (e) => {
     if (e.target === e.currentTarget) aoFechar();
@@ -7,8 +24,18 @@ function MovieModal({ filme, aoFechar }) {
 
   return (
     <div className="modal-fundo" onClick={aoClicarFundo}>
-      <div className="modal-conteudo">
-        <button className="modal-fechar" onClick={aoFechar} aria-label="Fechar">
+      <div
+        className="modal-conteudo"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-titulo-filme"
+      >
+        <button
+          ref={botaoFecharRef}
+          className="modal-fechar"
+          onClick={aoFechar}
+          aria-label="Fechar"
+        >
           ✕
         </button>
 
@@ -22,7 +49,7 @@ function MovieModal({ filme, aoFechar }) {
         />
 
         <div className="modal-info">
-          <h2>{filme.title}</h2>
+          <h2 id="modal-titulo-filme">{filme.title}</h2>
           <p className="modal-meta">
             ⭐ {filme.vote_average.toFixed(1)} · {filme.release_date?.slice(0, 4) || 'Sem data'}
           </p>
