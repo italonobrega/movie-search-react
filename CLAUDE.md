@@ -1,6 +1,6 @@
 # Movie Search — React
 
-App de busca de filmes consumindo a OMDB API.
+App de busca de filmes consumindo a TMDB API (The Movie Database).
 
 ## Stack
 - React + Vite
