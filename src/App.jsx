@@ -91,7 +91,7 @@ function App() {
           {termoBuscado ? `Resultados para: ${termoBuscado}` : 'Filmes Populares'}
         </h2>
 
-        {erro && <p className="mensagem-erro">{erro}</p>}
+        {erro && filmes.length === 0 && <p className="mensagem-erro">{erro}</p>}
 
         {carregando && <Spinner />}
 
@@ -104,6 +104,10 @@ function App() {
         {!carregando && filmes.length > 0 && (
           <>
             <MovieGrid filmes={filmes} aoSelecionarFilme={setFilmeSelecionado} />
+
+            {erro && (
+              <p className="mensagem-erro mensagem-erro--paginacao">{erro}</p>
+            )}
 
             {temMaisPaginas && (
               <div className="area-carregar-mais">

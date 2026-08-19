@@ -123,6 +123,12 @@ header {
   padding: 40px 0;
 }
 
+/* Erro ao carregar mais páginas: aparece abaixo do grid já carregado */
+.mensagem-erro--paginacao {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
 /* --- Spinner de carregamento --- */
 .spinner {
   width: 40px;
