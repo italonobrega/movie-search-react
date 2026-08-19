@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './index.css';
 import SearchBar from './components/SearchBar';
 import MovieGrid from './components/MovieGrid';
@@ -21,6 +21,9 @@ function App() {
   const [totalPaginas, setTotalPaginas] = useState(1);
 
   const [filmeSelecionado, setFilmeSelecionado] = useState(null);
+
+  const primeiraRenderizacao = useRef(true); // evita que o efeito de debounce dispare uma busca ao montar
+  const timerDebounceRef = useRef(null);
 
   // Monta a URL certa: busca por texto ou lista de populares
   const montarUrl = (termo, paginaAlvo) => {
@@ -62,13 +65,32 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pesquisarFilmes = (evento) => {
-    evento.preventDefault();
-    if (!busca) return;
-    setTermoBuscado(busca);
+  // Dispara a busca de fato (usada tanto pelo debounce quanto pelo submit do form)
+  const executarBusca = (termo) => {
+    setTermoBuscado(termo);
     setErro(null);
     setCarregando(true);
-    buscarFilmes(busca, 1);
+    buscarFilmes(termo, 1);
+  };
+
+  // Busca automaticamente enquanto o usuário digita, com debounce de 500ms
+  // pra não disparar uma requisição a cada tecla pressionada.
+  useEffect(() => {
+    if (primeiraRenderizacao.current) {
+      primeiraRenderizacao.current = false;
+      return;
+    }
+
+    timerDebounceRef.current = setTimeout(() => executarBusca(busca), 500);
+    return () => clearTimeout(timerDebounceRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busca]);
+
+  // Enter ou clique em "Pesquisar": cancela o debounce pendente e busca na hora
+  const pesquisarFilmes = (evento) => {
+    evento.preventDefault();
+    clearTimeout(timerDebounceRef.current);
+    executarBusca(busca);
   };
 
   const carregarMais = () => {
