@@ -105,3 +105,138 @@ header {
 .form-busca button:hover {
   background-color: #b20710;
 }
+
+/* --- Mensagens de estado (erro / vazio) --- */
+.mensagem-erro {
+  text-align: center;
+  color: #e50914;
+  background-color: #2a1214;
+  border: 1px solid #4d2024;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.mensagem-vazia {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+/* --- Spinner de carregamento --- */
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin: 60px auto;
+  border: 4px solid #333;
+  border-top-color: #e50914;
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Botão "Carregar mais" --- */
+.area-carregar-mais {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.botao-carregar-mais {
+  padding: 12px 30px;
+  font-size: 1rem;
+  background-color: transparent;
+  color: white;
+  border: 1px solid #e50914;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.botao-carregar-mais:hover:not(:disabled) {
+  background-color: #e50914;
+}
+
+.botao-carregar-mais:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Modal de detalhes --- */
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+.modal-conteudo {
+  background-color: #181818;
+  border-radius: 8px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  position: relative;
+}
+
+.modal-conteudo img {
+  width: 220px;
+  min-width: 220px;
+  object-fit: cover;
+}
+
+.modal-info {
+  padding: 25px;
+}
+
+.modal-info h2 {
+  margin-bottom: 10px;
+}
+
+.modal-meta {
+  color: #f5c518;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.modal-sinopse {
+  color: #ccc;
+  line-height: 1.5;
+}
+
+.modal-fechar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* Empilha imagem e texto em telas estreitas */
+@media (max-width: 600px) {
+  .modal-conteudo {
+    flex-direction: column;
+  }
+
+  .modal-conteudo img {
+    width: 100%;
+    height: 300px;
+  }
+}

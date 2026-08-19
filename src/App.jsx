@@ -1,86 +1,128 @@
 import { useState, useEffect } from 'react';
 import './index.css';
+import SearchBar from './components/SearchBar';
+import MovieGrid from './components/MovieGrid';
+import MovieModal from './components/MovieModal';
+import Spinner from './components/Spinner';
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 function App() {
   const [filmes, setFilmes] = useState([]);
-  const [busca, setBusca] = useState(''); // Novo estado para guardar o texto da busca
+  const [busca, setBusca] = useState(''); // valor atual do input
+  const [termoBuscado, setTermoBuscado] = useState(''); // termo da última busca confirmada (para paginar)
 
-  // Função original para carregar os filmes populares ao abrir o site
-  useEffect(() => {
-    const buscarFilmesPopulares = async () => {
-      try {
-        const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-        const url = `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&language=pt-BR&page=1`;
+  // Começa "true" pois a primeira busca (filmes populares) já dispara ao montar o componente
+  const [carregando, setCarregando] = useState(true); // primeira página (spinner central)
+  const [carregandoMais, setCarregandoMais] = useState(false); // páginas seguintes (botão)
+  const [erro, setErro] = useState(null);
 
-        const resposta = await fetch(url);
-        const dados = await resposta.json();
-        setFilmes(dados.results);
-      } catch (erro) {
-        console.error("Erro ao buscar filmes:", erro);
-      }
-    };
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
 
-    buscarFilmesPopulares();
-  }, []);
+  const [filmeSelecionado, setFilmeSelecionado] = useState(null);
 
-  // Nova função acionada pelo botão de pesquisar
-  const pesquisarFilmes = async (evento) => {
-    evento.preventDefault(); // Evita que a página recarregue ao enviar o formulário
-    
-    if (!busca) return; // Se o campo estiver vazio, não faz nada
+  // Monta a URL certa: busca por texto ou lista de populares
+  const montarUrl = (termo, paginaAlvo) => {
+    if (termo) {
+      return `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=pt-BR&query=${termo}&page=${paginaAlvo}`;
+    }
+    return `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR&page=${paginaAlvo}`;
+  };
+
+  // Função única que busca uma página (seja populares, seja resultado de pesquisa).
+  // Quem chama já deixa "carregando"/"carregandoMais" true antes de chamar esta função;
+  // aqui só resolvemos a requisição e desligamos os dois no final.
+  const buscarFilmes = async (termo, paginaAlvo) => {
+    const primeiraPagina = paginaAlvo === 1;
 
     try {
-      const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-      // Note que o link aqui é diferente, ele usa o /search/ e passa o que digitamos na variável ${busca}
-      const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=pt-BR&query=${busca}&page=1`;
+      const resposta = await fetch(montarUrl(termo, paginaAlvo));
+      if (!resposta.ok) throw new Error('Falha na requisição');
 
-      const resposta = await fetch(url);
       const dados = await resposta.json();
-      setFilmes(dados.results); // Atualiza o grid com os novos resultados
+      setFilmes((atuais) => (primeiraPagina ? dados.results : [...atuais, ...dados.results]));
+      setPagina(dados.page);
+      setTotalPaginas(dados.total_pages);
     } catch (erro) {
-      console.error("Erro ao pesquisar filmes:", erro);
+      console.error('Erro ao buscar filmes:', erro);
+      setErro('Não foi possível carregar os filmes. Tente novamente em instantes.');
+    } finally {
+      setCarregando(false);
+      setCarregandoMais(false);
     }
   };
+
+  // Carrega os filmes populares assim que o site abre.
+  // Só deve rodar uma vez ao montar; buscarFilmes fica fora do efeito porque
+  // também é reaproveitada pela busca e pelo "carregar mais".
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    buscarFilmes('', 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pesquisarFilmes = (evento) => {
+    evento.preventDefault();
+    if (!busca) return;
+    setTermoBuscado(busca);
+    setErro(null);
+    setCarregando(true);
+    buscarFilmes(busca, 1);
+  };
+
+  const carregarMais = () => {
+    setErro(null);
+    setCarregandoMais(true);
+    buscarFilmes(termoBuscado, pagina + 1);
+  };
+
+  const temMaisPaginas = pagina < totalPaginas;
 
   return (
     <div className="container">
       <header>
         <h1>🎬 Movie Search</h1>
-        
-        {/* Formulário de Busca */}
-        <form onSubmit={pesquisarFilmes} className="form-busca">
-          <input 
-            type="text" 
-            placeholder="Busque por um filme..." 
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)} // Atualiza o estado a cada letra digitada
-          />
-          <button type="submit">Pesquisar</button>
-        </form>
+        <SearchBar valor={busca} aoMudar={setBusca} aoPesquisar={pesquisarFilmes} />
       </header>
 
       <main>
-        {/* O título muda dinamicamente dependendo de ter uma busca ativa ou não */}
         <h2 className="titulo-secao">
-          {busca ? `Resultados para: ${busca}` : "Filmes Populares"}
+          {termoBuscado ? `Resultados para: ${termoBuscado}` : 'Filmes Populares'}
         </h2>
-        
-        <div className="grid-filmes">
-          {filmes.map((filme) => (
-            <div className="cartao-filme" key={filme.id}>
-              {/* Tratamento de erro: se o filme não tiver capa, mostra uma imagem genérica */}
-              <img 
-                src={filme.poster_path ? `https://image.tmdb.org/t/p/w500${filme.poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Capa'} 
-                alt={`Cartaz de ${filme.title}`} 
-              />
-              <div className="info-filme">
-                <h3>{filme.title}</h3>
-                <p>⭐ {filme.vote_average.toFixed(1)}</p>
+
+        {erro && <p className="mensagem-erro">{erro}</p>}
+
+        {carregando && <Spinner />}
+
+        {!carregando && !erro && filmes.length === 0 && (
+          <p className="mensagem-vazia">
+            Nenhum filme encontrado para "{termoBuscado}". Tente outro termo.
+          </p>
+        )}
+
+        {!carregando && filmes.length > 0 && (
+          <>
+            <MovieGrid filmes={filmes} aoSelecionarFilme={setFilmeSelecionado} />
+
+            {temMaisPaginas && (
+              <div className="area-carregar-mais">
+                <button
+                  className="botao-carregar-mais"
+                  onClick={carregarMais}
+                  disabled={carregandoMais}
+                >
+                  {carregandoMais ? 'Carregando...' : 'Carregar mais'}
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </>
+        )}
       </main>
+
+      {filmeSelecionado && (
+        <MovieModal filme={filmeSelecionado} aoFechar={() => setFilmeSelecionado(null)} />
+      )}
     </div>
   );
 }
